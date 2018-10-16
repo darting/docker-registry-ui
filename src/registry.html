@@ -1,0 +1,74 @@
+<html>
+
+<head>
+    <title>Docker Registry</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/3.0.0/fetch.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-1">
+        <h3>
+            <a href="/">Home</a>
+        </h3>
+    </nav>
+
+    <div id="container" class="container">
+        
+    </div>
+
+    <script>
+        const ENDPOINT = "https://registry.uat/v2/"
+
+        function uniqueId() {
+            return '_' + Math.random().toString(36).substr(2, 9)
+        }
+
+        function createElement(html) {
+            const el = document.createElement("div")
+            el.innerHTML = html
+            return el.firstChild
+        }
+
+        function listRepositories() {
+            return fetch(ENDPOINT + "_catalog").then(rsp => rsp.json())
+        }
+
+        function listTags(repoName) {
+            return fetch(ENDPOINT + encodeURIComponent(repoName) + "/tags/list").then(rsp => rsp.json())
+        }
+
+        function createTagsFor(elementId, repoName) {
+            listTags(repoName).then(x => {
+                const target = document.querySelector("#" + elementId + " > .card-body")
+                x.tags.forEach(tag => {
+                    const html = '<div class="badge badge-primary">' + tag + '</div>'
+                    target.appendChild(createElement(html))
+                })
+            });
+        }
+
+        function createRepoSummary(repoName) {
+            const id = uniqueId()
+            const html = '<div id="' + id + '" class="card"><div class="card-body"><h5 class="card-title">' + repoName + '</h5></div></div>'
+            const summary = createElement(html)
+            createTagsFor(id, repoName)
+            return summary
+        }
+
+        const container = document.querySelector("#container")
+
+        listRepositories().then(x => {
+            x.repositories.forEach(repo => {
+                container.appendChild(createRepoSummary(repo))
+            });
+        })
+
+    </script>
+
+</body>
+
+</html>
