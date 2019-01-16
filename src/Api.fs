@@ -23,7 +23,7 @@ let getImageDigest (endpoint : string) (name : string) (reference : string) =
     let url = sprintf "%s/%s/manifests/%s" endpoint (Fable.Import.JS.encodeURIComponent name) reference
     let! rsp = 
         Http.request url
-        |> Http.method HttpMethod.GET
+        |> Http.method HttpMethod.HEAD
         |> Http.send
     Fable.Import.JS.console.log("headers", rsp.responseHeaders)
     let x = rsp.responseHeaders
