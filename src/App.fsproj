@@ -4,12 +4,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Types.fs" />
+    <Compile Include="Api.fs" />
     <Compile Include="App.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Fable.Core" Version="2.0.2" />
     <PackageReference Include="Fable.Elmish.React" Version="2.1.0" />
     <PackageReference Include="Fable.Fetch" Version="1.0.0" />
+    <PackageReference Include="Fable.SimpleHttp" Version="1.0.0" />
     <PackageReference Include="Thoth.Json" Version="2.5.0" />
   </ItemGroup>
 </Project>

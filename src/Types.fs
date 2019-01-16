@@ -33,7 +33,7 @@ and Repository =
 
 type Msg =
     | DeleteWithTag of repo:string * tag:string
-    | ImageDigestFetched of string
+    | ImageDigestFetched of string option
     | CatelogFetched of Catelog
     | RepositoryTagsFetched of RepositoryTags
     | FetchError of exn

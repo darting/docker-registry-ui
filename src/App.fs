@@ -17,62 +17,21 @@ open Types
 // configures
 let endpoint = "https://registry.uat/v2"
 
-// Api
-let getCatelog () =
-    promise {
-        let url = sprintf "%s/_catalog" endpoint
-        let! res = Fetch.fetch url []
-        let! txt = res.text()
-        return Decode.Auto.unsafeFromString<Catelog> txt
-    }
+let getCatelog () = Api.getCatelog endpoint
 
-let getRepositoryTags (repo : string) =
-    promise {
-        let url = sprintf "%s/%s/tags/list" endpoint (encodeURIComponent repo)
-        let! res = Fetch.fetch url []
-        let! txt = res.text()
-        return Decode.Auto.unsafeFromString<RepositoryTags> txt
-    }
+let getImageDigest = Api.getImageDigest endpoint
 
-let getManifest (name : string) (reference : string) =
-  promise {
-    let url = sprintf "%s/%s/manifests/%s" endpoint (encodeURIComponent name) reference
-    let props = [ RequestProperties.Method HttpMethod.GET ]
-    let! res = Fetch.fetch url props
-    let digest = res.Headers.get "Docker-Content-Digest"
-    let! txt = res.text()
-    let manifest = Decode.Auto.unsafeFromString<Manifest> txt
-    return { manifest with digest = digest }
-  }
-
-let getImageDigest (name : string) (reference : string) =
-  promise {
-    let url = sprintf "%s/%s/manifests/%s" endpoint (encodeURIComponent name) reference
-    let props = [ RequestProperties.Method HttpMethod.HEAD ]
-    let! res = Fetch.fetch url props
-    let x = res.Headers.get "Docker-Content-Digest"
-    console.log("digest",x,res.Headers)
-    return x
-  }
-
-let deleteImage (name : string) (reference : string) =
-  promise {
-    let url = sprintf "%s/%s/manifests/%s" endpoint (encodeURIComponent name) reference
-    let props = [ RequestProperties.Method HttpMethod.DELETE ]
-    let! res = Fetch.fetch url props
-    let! txt = res.text()
-    return txt
-  }
+let getRepositoryTags = Api.getRepositoryTags endpoint
 
 let init() =
     { Repositories = [] },
-    Cmd.ofPromise getCatelog () CatelogFetched FetchError
+    Cmd.ofAsync getCatelog  () CatelogFetched FetchError
 
 // UPDATE
 let update (msg : Msg) (model : Model) =
     match msg with
     | DeleteWithTag (repo, tag) ->
-      model, Cmd.ofPromise (getImageDigest repo) tag ImageDigestFetched FetchError
+      model, Cmd.ofAsync (getImageDigest repo) tag ImageDigestFetched FetchError
     | CatelogFetched catelog ->
         let repositories =
             catelog.repositories
@@ -82,7 +41,7 @@ let update (msg : Msg) (model : Model) =
             |> List.sortBy (fun x -> x.Name)
         let cmd = 
           catelog.repositories
-          |> List.map (fun x -> Cmd.ofPromise getRepositoryTags x RepositoryTagsFetched FetchError)
+          |> List.map (fun x -> Cmd.ofAsync getRepositoryTags x RepositoryTagsFetched FetchError)
           |> Cmd.batch
         { model with Repositories = repositories }, cmd
     | RepositoryTagsFetched repositoryTags ->
