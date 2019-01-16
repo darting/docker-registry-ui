@@ -1,0 +1,29 @@
+{
+  "name": "docker-registry-ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack-dev-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darting/docker-registry-ui.git"
+  },
+  "author": "Valor",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/darting/docker-registry-ui/issues"
+  },
+  "homepage": "https://github.com/darting/docker-registry-ui#readme",
+  "dependencies": {
+    "@babel/core": "^7.1.2",
+    "fable-compiler": "latest",
+    "fable-loader": "latest",
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.10",
+    "react": "latest",
+    "react-dom": "latest"
+  }
+}
