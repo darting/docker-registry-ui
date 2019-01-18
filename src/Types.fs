@@ -30,10 +30,10 @@ and Repository =
     { Name : string
       Tags : string list }
 
-
 type Msg =
-    | DeleteWithTag of repo:string * tag:string
-    | ImageDigestFetched of string option
+    | DeleteImage of name:string * tag:string
+    | ImageDeleted
+    | ImageDigestFetched of name:string * digest:string
     | CatelogFetched of Catelog
     | RepositoryTagsFetched of RepositoryTags
     | FetchError of exn

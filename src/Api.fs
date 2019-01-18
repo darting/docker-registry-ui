@@ -25,11 +25,22 @@ let getImageDigest (endpoint : string) (name : string) (reference : string) =
         Http.request url
         |> Http.method HttpMethod.HEAD
         |> Http.send
-    Fable.Import.JS.console.log("headers", rsp.responseHeaders)
-    let x = rsp.responseHeaders
-            |> Map.tryFind "Docker-Content-Digest"
-    return x
+    return Map.tryFind "docker-content-digest" rsp.responseHeaders
   }
+
+let deleteImage (endpoint : string) (name : string) (reference : string) =
+  async {
+    let url = sprintf "%s/%s/manifests/%s" endpoint (Fable.Import.JS.encodeURIComponent name) reference
+    let! rsp =
+        Http.request url
+        |> Http.method HttpMethod.POST
+        |> Http.send
+
+    return match rsp.statusCode with
+           | 200 -> Ok ()
+           | _ -> Error rsp.statusCode
+  }
+
 
 // let getCatelog () =
 //     promise {
@@ -66,13 +77,4 @@ let getImageDigest (endpoint : string) (name : string) (reference : string) =
 //     let x = res.Headers.get "Docker-Content-Digest"
 //     console.log("digest",x,res.Headers)
 //     return x
-//   }
-
-// let deleteImage (name : string) (reference : string) =
-//   promise {
-//     let url = sprintf "%s/%s/manifests/%s" endpoint (encodeURIComponent name) reference
-//     let props = [ RequestProperties.Method HttpMethod.DELETE ]
-//     let! res = Fetch.fetch url props
-//     let! txt = res.text()
-//     return txt
 //   }

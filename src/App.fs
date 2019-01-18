@@ -10,8 +10,6 @@ open Fable.Import.Browser
 open Fable.Helpers.React
 open Fable.Helpers.React.Props
 open Fable.PowerPack
-open Fetch.Fetch_types
-open Thoth.Json
 open Types
 
 // configures
@@ -23,6 +21,8 @@ let getImageDigest = Api.getImageDigest endpoint
 
 let getRepositoryTags = Api.getRepositoryTags endpoint
 
+let deleteImage = Api.deleteImage endpoint
+
 let init() =
     { Repositories = [] },
     Cmd.ofAsync getCatelog  () CatelogFetched FetchError
@@ -30,8 +30,11 @@ let init() =
 // UPDATE
 let update (msg : Msg) (model : Model) =
     match msg with
-    | DeleteWithTag (repo, tag) ->
-      model, Cmd.ofAsync (getImageDigest repo) tag ImageDigestFetched FetchError
+    | DeleteImage (imageName, tag) ->
+      model, Cmd.ofAsync (getImageDigest imageName) tag 
+                         (function
+                          | Some digest -> ImageDigestFetched (imageName, digest)
+                          | None -> FetchError (exn "can't get image digest")) FetchError
     | CatelogFetched catelog ->
         let repositories =
             catelog.repositories
@@ -53,9 +56,13 @@ let update (msg : Msg) (model : Model) =
         , Cmd.none
       | None -> 
         model, Cmd.none
-    | ImageDigestFetched digest ->
-      console.log(digest)
-      model, Cmd.none
+    | ImageDigestFetched (name, digest) ->
+      model, Cmd.ofAsync (deleteImage name) digest 
+                         (function
+                          | Ok _ -> ImageDeleted
+                          | Error code -> code.ToString() |> exn |> FetchError) FetchError
+    | ImageDeleted ->
+      model, Cmd.none                          
     | FetchError ex -> model, Cmd.none
 
 // styles
@@ -87,12 +94,16 @@ module Styles =
             LineHeight "1"
             WhiteSpace "nowrap" ]
 
+  let m1 =     
+    Style [ Margin "0.2rem" ]       
+
 
 // views
 let viewTag (repo : string) (tag : string) dispatch = 
   div [ Styles.tag ] 
       [ span [] [ str tag ]
-        button [ OnClick (fun _ -> dispatch (DeleteWithTag (repo, tag)) ) ] [ str "X" ] ]
+        button [ Styles.m1
+                 OnClick (fun _ -> dispatch (DeleteImage (repo, tag)) ) ] [ str "X" ] ]
 
 let viewRepositorySummary (repo : Repository) dispatch =
     div [ Styles.card ] 
