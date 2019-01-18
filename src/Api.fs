@@ -4,6 +4,10 @@ open Fable.SimpleHttp
 open Thoth.Json
 open Types
 
+let [<Literal>] manifestType = "application/vnd.docker.distribution.manifest.v2+json"
+
+let safeUri = Fable.Import.JS.encodeURIComponent
+
 let getCatelog (endpoint : string) =
     async {
         let url = sprintf "%s/_catalog" endpoint
@@ -13,31 +17,45 @@ let getCatelog (endpoint : string) =
 
 let getRepositoryTags (endpoint : string) (repo : string) =
     async {
-        let url = sprintf "%s/%s/tags/list" endpoint (Fable.Import.JS.encodeURIComponent repo)
+        let url = sprintf "%s/%s/tags/list" endpoint (safeUri repo)
         let! (code, rsp) = Http.get  url
         return Decode.Auto.unsafeFromString<RepositoryTags> rsp
     }
 
 let getImageDigest (endpoint : string) (name : string) (reference : string) =
   async {
-    let url = sprintf "%s/%s/manifests/%s" endpoint (Fable.Import.JS.encodeURIComponent name) reference
+    let url = sprintf "%s/%s/manifests/%s" endpoint (safeUri name) reference
     let! rsp = 
         Http.request url
         |> Http.method HttpMethod.HEAD
+        |> Http.header (Headers.accept "application/vnd.docker.distribution.manifest.v2+json")
         |> Http.send
     return Map.tryFind "docker-content-digest" rsp.responseHeaders
   }
 
 let deleteImage (endpoint : string) (name : string) (reference : string) =
   async {
-    let url = sprintf "%s/%s/manifests/%s" endpoint (Fable.Import.JS.encodeURIComponent name) reference
+    let url = sprintf "%s/%s/manifests/%s" endpoint (safeUri name) (safeUri reference)
     let! rsp =
         Http.request url
-        |> Http.method HttpMethod.POST
+        |> Http.method HttpMethod.DELELE
         |> Http.send
 
     return match rsp.statusCode with
-           | 200 -> Ok ()
+           | 202 -> Ok ()
+           | _ -> Error rsp.statusCode
+  }
+
+let deleteLayer (endpoint : string) (name : string) (reference : string) =
+  async {
+    let url = sprintf "%s/%s/blobs/%s" endpoint (safeUri name) (safeUri reference)
+    let! rsp =
+        Http.request url
+        |> Http.method HttpMethod.DELELE
+        |> Http.send
+
+    return match rsp.statusCode with
+           | 202 -> Ok ()
            | _ -> Error rsp.statusCode
   }
 

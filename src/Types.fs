@@ -32,6 +32,7 @@ and Repository =
 
 type Msg =
     | DeleteImage of name:string * tag:string
+    | DeleteLayer of name:string * tag:string
     | ImageDeleted
     | ImageDigestFetched of name:string * digest:string
     | CatelogFetched of Catelog

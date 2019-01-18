@@ -30,11 +30,13 @@ let init() =
 // UPDATE
 let update (msg : Msg) (model : Model) =
     match msg with
-    | DeleteImage (imageName, tag) ->
-      model, Cmd.ofAsync (getImageDigest imageName) tag 
+    | DeleteImage (name, tag) ->
+      model, Cmd.ofAsync (getImageDigest name) tag 
                          (function
-                          | Some digest -> ImageDigestFetched (imageName, digest)
+                          | Some digest -> ImageDigestFetched (name, digest)
                           | None -> FetchError (exn "can't get image digest")) FetchError
+    | DeleteLayer (name, tag) ->
+      model, Cmd.none
     | CatelogFetched catelog ->
         let repositories =
             catelog.repositories
@@ -103,7 +105,9 @@ let viewTag (repo : string) (tag : string) dispatch =
   div [ Styles.tag ] 
       [ span [] [ str tag ]
         button [ Styles.m1
-                 OnClick (fun _ -> dispatch (DeleteImage (repo, tag)) ) ] [ str "X" ] ]
+                 OnClick (fun _ -> dispatch (DeleteImage (repo, tag)) ) ] [ str "DEL IMAGE" ]
+        button [ Styles.m1
+                 OnClick (fun _ -> dispatch (DeleteLayer (repo, tag)) ) ] [ str "DEL LAYER" ] ]
 
 let viewRepositorySummary (repo : Repository) dispatch =
     div [ Styles.card ] 
